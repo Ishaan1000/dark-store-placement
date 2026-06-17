@@ -98,9 +98,9 @@ The interactive map shows:
 
 > *Full brief in `outputs/strategy_brief.md`*
 
-**Top Insight:** Delhi-NCR's current ~120 dark stores are heavily concentrated in South Delhi and Central NCR (Noida Sector 18–62 corridor). North-West Delhi, Outer East Delhi, and Faridabad's newer residential sectors represent 40%+ of the city's addressable population with less than 15% of current dark store coverage.
+**Top Insight (this run):** The highest-opportunity zones cluster in Metro Core areas 3–9km from the nearest seeded store location — close enough for realistic single-store expansion, far enough to avoid cannibalising existing coverage. 7 of the top 10 zones sit in Gurgaon or Noida's extended sectors rather than core Delhi, where the seed store list is comparatively thinner.
 
-**Recommendation:** 3 zones in North-West Delhi (Rohini outer sectors, Bawana) and 2 in Outer East (Kondli, Gharoli) should be prioritised for Q3 2026 store openings, with an estimated combined addressable demand of 3,200–4,500 orders/day.
+**Recommendation:** Sequence the top 3 zones (South-West Gurgaon periphery, Noida Sector 44 belt, and the Sohna Road corridor) as a first-wave rollout in the same quarter, with a combined estimated demand of ~13,100 orders/day across those three zones alone. Full top-10 financial summary in `outputs/strategy_brief.md`.
 
 ---
 
