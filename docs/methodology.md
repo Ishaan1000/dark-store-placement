@@ -121,10 +121,13 @@ Quick-commerce platforms promise 10–15 minute delivery. At an average delivery
 
 ## Reproducibility
 
-All data sources are free and publicly available:
-- **Dark store locations:** OpenStreetMap via Overpass API
-- **Population data:** Census of India 2011 (censusindia.gov.in)
-- **Ward boundaries:** data.gov.in
-- **Income proxy:** Derived from OSM building/housing classification
+- **Dark store locations:** real data — OpenStreetMap via Overpass API, with a hand-built fallback seed list of ~38 real, named Blinkit/Zepto/Instamart locations if the API returns too little
+- **Demand zone population density, income proxy, delivery-demand signal:** synthetic — `data_loader.generate_demand_grid()` produces a fully reproducible parametric multi-center density model calibrated to known Delhi-NCR geography (4 real urban centers: CP, Gurgaon, Noida, Rohini), **not** sourced from Census or any official dataset
 
-The synthetic demand grid (`data_loader.generate_demand_grid()`) uses a parametric multi-center density model calibrated to known Delhi-NCR geography (4 urban centers: CP, Gurgaon, Noida, Rohini).
+See the README's "Data Status" section for the full real-vs-synthetic breakdown and the reasoning behind it.
+
+---
+
+## Data Engineering Layer
+
+This methodology document covers the *modelling* logic (`opportunity_model.py`). A separate, additive data engineering layer (`schemas.py` + `pipeline.py`) wraps the same data sources in explicit Extract → Validate → Transform → Load stages, with Pandera schema validation and idempotent SQLite persistence. See the README's "Data Engineering Layer" section for details, or run `python src/pipeline.py` directly.

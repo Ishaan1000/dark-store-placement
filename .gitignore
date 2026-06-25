@@ -21,3 +21,7 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Prefect runtime (AQI project only, harmless if present in others)
+.prefect/
+*.prefect
