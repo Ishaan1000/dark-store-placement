@@ -236,12 +236,16 @@ def generate_demand_grid(n_zones: int = 150) -> gpd.GeoDataFrame:
                 "population_density": round(density, 0),
                 "income_proxy":     round(income, 3),
                 "delivery_demand":  round(delivery_demand, 3),
-                "area_km2":         round(110 * (lats[i+1]-lats[i]) * 111 * (lons[j+1]-lons[j]), 2),
                 "geometry":         poly,
             })
             zone_id += 1
 
     gdf = gpd.GeoDataFrame(records, geometry="geometry", crs="EPSG:4326")
+    # True cell area in km², measured in metres after projecting to UTM 43N.
+    # (A flat degrees x 111 km formula ignores that a degree of longitude
+    # shrinks with cos(latitude) and overstated area by ~14% at 28.6°N.)
+    gdf.insert(gdf.columns.get_loc("geometry"), "area_km2",
+               (gdf.to_crs("EPSG:32643").area / 1e6).round(2))
     print(f"✅ Generated {len(gdf)} demand zones across Delhi-NCR.")
     return gdf
 

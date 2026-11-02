@@ -88,7 +88,7 @@ All sub-scores normalised to [0, 1] using MinMaxScaler before weighting.
 
 ## Order Demand Estimation
 
-Each top-10 zone is sized as **one new store** serving its delivery radius. A single store can't serve a whole ~34 km² grid cell, so the cell-level figure is kept only as a ceiling.
+Each top-10 zone is sized as **one new store** serving its delivery radius. A single store can't serve a whole ~30.5 km² grid cell (area measured in UTM 43N), so the cell-level figure is kept only as a ceiling.
 
 ```
 Catchment area   = pi x r²  (r = 1.5 km -> 7.07 km², capped at the zone area)

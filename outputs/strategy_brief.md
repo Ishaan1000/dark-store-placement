@@ -45,7 +45,7 @@ Full methodology and the rationale for the distance cap and density floor: see `
 
 ## Actual Top 10 Output (this run)
 
-Orders and GMV are sized to **one new store's 1.5 km catchment** (π × 1.5² ≈ 7.07 km²), not the whole 34 km² grid cell. One store can't serve an entire cell, so the cell-level figure is shown only as a ceiling in `order_demand_estimates.csv` (`zone_potential_daily_orders`). **Stable** is the share of 1,000 random weight draws (each weight varied by about ±20%) in which the zone stays in the top 10.
+Orders and GMV are sized to **one new store's 1.5 km catchment** (π × 1.5² ≈ 7.07 km²), not the whole ~30.5 km² grid cell. One store can't serve an entire cell, so the cell-level figure is shown only as a ceiling in `order_demand_estimates.csv` (`zone_potential_daily_orders`). **Stable** is the share of 1,000 random weight draws (each weight varied by about ±20%) in which the zone stays in the top 10.
 
 | Rank | Zone | Type | Nearest store | Distance | Density (/km²) | Income | DSOI | Orders/day | GMV ₹ L/mo | Stable | Approx. area |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -102,11 +102,11 @@ Replace the 38-store seed list with an operator's real store roster, and replace
 | Estimated daily orders | 7,521 (≈752 per store) |
 | Estimated monthly GMV | ₹8.57 Cr |
 | Estimated annual GMV | ₹104.3 Cr |
-| Cell-level ceiling (if a store served its whole 34 km² cell) | 36,530 orders/day |
+| Cell-level ceiling (if a store served its whole ~30.5 km² cell) | 32,471 orders/day |
 
 *Assumptions: 8 orders per 1,000 residents per day where the income proxy is ≥ 0.6 (all 10 zones), a ₹380 average basket, and a 1.5 km delivery radius at steady state. Every assumption is an editable input in the Excel model.*
 
-> **Correction to the earlier version of this brief:** it reported 36,530 orders/day and ₹41.6 Cr/month. Those figures assumed each new store serves its entire 34 km² grid cell. They are now shown only as a ceiling.
+> **Correction to the earlier version of this brief:** it reported 36,530 orders/day and ₹41.6 Cr/month. Those figures assumed each new store serves its entire grid cell. The cell areas were also overstated by ~14% (no cos-latitude correction); with both fixed, the cell-level figure (32,471/day) is shown only as a ceiling.
 
 ---
 

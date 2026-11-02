@@ -179,7 +179,7 @@ def estimate_order_demand(top_zones: gpd.GeoDataFrame,
     """
     Estimates daily order potential and GMV for each top zone at two levels:
 
-    1. Zone potential  : every resident of the ~34 km² grid cell. An upper
+    1. Zone potential  : every resident of the ~30 km² grid cell. An upper
                          bound - one store cannot serve all of it.
     2. Single-store    : residents inside ONE new store's delivery radius
        capture         (pi x r² = 7.07 km² at r = 1.5 km). This is the headline

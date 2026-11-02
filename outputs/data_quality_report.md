@@ -1,6 +1,6 @@
 # Data Quality Report — Dark Store Placement Intelligence
 
-Generated: 2026-11-02T14:53:29.508615+00:00
+Generated: 2026-11-02T15:06:31.025133+00:00
 
 ## Dark Stores
 - Row count: 38

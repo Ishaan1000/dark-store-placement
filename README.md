@@ -64,13 +64,14 @@ DSOI = 0.35 × density + 0.35 × distance to nearest store (capped at 6 km)
 ```
 - Zones within 1.5 km of a store are tagged **Covered**. Zones below 3,000/km² are tagged **Excluded**. Both get DSOI = 0.
 - Distances are computed in UTM 43N (EPSG:32643).
-- **Order sizing** counts the residents inside one new store's 1.5 km radius (7.07 km²) × 8 orders per 1,000 per day (income ≥ 0.6, otherwise 4) × ₹380 basket. The whole-cell figure (36,530/day) is reported only as a ceiling.
+- **Order sizing** counts the residents inside one new store's 1.5 km radius (7.07 km²) × 8 orders per 1,000 per day (income ≥ 0.6, otherwise 4) × ₹380 basket. The whole-cell figure (32,471/day) is reported only as a ceiling.
 
 Full detail: [`docs/methodology.md`](docs/methodology.md).
 
 ## Fixes made in this version
 - **Tier labels:** earlier output labelled all 86 zero-score zones "Covered". Only 6 are actually within 1.5 km of a store; the other 80 were excluded by the density floor. They now have separate tiers.
 - **GMV sizing:** earlier output assumed each new store serves its entire ~34 km² grid cell (36,530 orders/day, ₹41.6 Cr/month). Sizing to a 1.5 km catchment gives 7,521/day and ₹8.6 Cr/month.
+- **Cell area:** areas were computed as degrees × 111 km, ignoring that a degree of longitude shrinks with cos(latitude), which overstated them by ~14% (34.3 vs 30.5 km²). Areas are now measured in UTM 43N. Headline orders, GMV and the top 10 are unchanged (they use the 1.5 km catchment). The whole-cell ceiling falls from 36,530 to 32,471 orders/day.
 
 ## Run
 ```
