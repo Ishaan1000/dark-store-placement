@@ -3,6 +3,8 @@
 Where should a quick-commerce operator (Blinkit, Zepto, Instamart) open its next 10 dark stores in Delhi-NCR?
 Built in Python (GeoPandas, scikit-learn, Folium, pandera, SQLite). The model scores 150 demand zones on a weighted **Dark Store Opportunity Index (DSOI)**, sizes the order and GMV potential of the top 10, and stress-tests the ranking with 1,000 random weight draws.
 
+**[Open the interactive map](https://htmlpreview.github.io/?https://github.com/Ishaan1000/dark-store-placement/blob/main/outputs/dark_store_opportunity_map.html)** · [Strategy brief (PDF)](outputs/Dark_Store_Strategy_Brief.pdf) · [Excel what-if model](outputs/excel/Dark_Store_Expansion_Model.xlsx)
+
 ![DSOI opportunity map](outputs/figures/01_dsoi_opportunity_map.png)
 
 ## Key findings
