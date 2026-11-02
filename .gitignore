@@ -25,3 +25,5 @@ Thumbs.db
 # Prefect runtime (AQI project only, harmless if present in others)
 .prefect/
 *.prefect
+
+.venv/

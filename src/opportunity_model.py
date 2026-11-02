@@ -19,6 +19,9 @@ import pandas as pd
 import geopandas as gpd
 from sklearn.preprocessing import MinMaxScaler
 
+TIER_ORDER = ["Covered", "Excluded (Low Density)", "Low Opportunity",
+              "Medium Opportunity", "High Opportunity"]
+
 
 # ─────────────────────────────────────────────
 # COVERAGE DISTANCE
@@ -127,11 +130,17 @@ def compute_dsoi(zones: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     max_dsoi = zones["dsoi_raw"].max()
     zones["dsoi_score"] = (zones["dsoi_raw"] / max_dsoi * 100).round(1)
 
-    zones["dsoi_tier"] = pd.cut(
+    tier = pd.cut(
         zones["dsoi_score"],
-        bins=[-1, 0.1, 35, 60, 100],
-        labels=["Covered", "Low Opportunity", "Medium Opportunity", "High Opportunity"]
-    )
+        bins=[-1, 35, 60, 100],
+        labels=["Low Opportunity", "Medium Opportunity", "High Opportunity"]
+    ).astype(str)
+    # Zeroed zones get an explicit reason instead of a misleading score tier:
+    # "Covered" = inside an existing store's radius, "Excluded" = below the
+    # density floor (open land / periphery, never a candidate).
+    tier[zones["is_negligible_density"]] = "Excluded (Low Density)"
+    tier[zones["store_covered"]] = "Covered"
+    zones["dsoi_tier"] = pd.Categorical(tier, categories=TIER_ORDER, ordered=True)
 
     print(f"\n📊 DSOI Tier Distribution:")
     print(zones["dsoi_tier"].value_counts().to_string())
@@ -165,46 +174,50 @@ def get_top_expansion_zones(zones: gpd.GeoDataFrame,
 def estimate_order_demand(top_zones: gpd.GeoDataFrame,
                           orders_per_1000_high_income: float = 8.0,
                           orders_per_1000_mid_income: float  = 4.0,
-                          avg_order_value_inr: float          = 380.0) -> pd.DataFrame:
+                          avg_order_value_inr: float          = 380.0,
+                          catchment_radius_km: float          = 1.5) -> pd.DataFrame:
     """
-    Estimates daily order potential and revenue for each top zone.
+    Estimates daily order potential and GMV for each top zone at two levels:
+
+    1. Zone potential  : every resident of the ~34 km² grid cell. An upper
+                         bound - one store cannot serve all of it.
+    2. Single-store    : residents inside ONE new store's delivery radius
+       capture         (pi x r² = 7.07 km² at r = 1.5 km). This is the headline
+                         figure and the one comparable to a real store.
 
     Income segmentation:
-    - income_proxy >= 0.6 → high income rate (8 orders/1000/day)
-    - income_proxy <  0.6 → mid income rate  (4 orders/1000/day)
-
-    Args:
-        top_zones                : GeoDataFrame from get_top_expansion_zones
-        orders_per_1000_high_income : Daily orders per 1000 residents (affluent zones)
-        orders_per_1000_mid_income  : Daily orders per 1000 residents (mid-income zones)
-        avg_order_value_inr         : Average quick-commerce basket size (₹)
-
-    Returns:
-        DataFrame with order estimates per zone
+    - income_proxy >= 0.6 -> high income rate (8 orders/1000/day)
+    - income_proxy <  0.6 -> mid income rate  (4 orders/1000/day)
     """
     df = top_zones[["expansion_rank", "zone_id", "zone_type",
-                    "population_density", "area_km2",
+                    "lat_center", "lon_center", "nearest_store_name",
+                    "nearest_store_dist_km", "population_density", "area_km2",
                     "income_proxy", "dsoi_score"]].copy()
 
-    df["est_population"]   = (df["population_density"] * df["area_km2"]).round(0).astype(int)
+    rate = np.where(df["income_proxy"] >= 0.6,
+                    orders_per_1000_high_income, orders_per_1000_mid_income)
+    df["daily_order_rate"] = rate
 
-    rate = np.where(
-        df["income_proxy"] >= 0.6,
-        orders_per_1000_high_income,
-        orders_per_1000_mid_income
-    )
-    df["daily_order_rate"]        = rate
-    df["est_daily_orders"]        = (df["est_population"] * rate / 1000).round(0).astype(int)
-    df["est_daily_gmv_inr"]       = (df["est_daily_orders"] * avg_order_value_inr).round(0).astype(int)
-    df["est_monthly_gmv_inr"]     = (df["est_daily_gmv_inr"] * 30).round(0).astype(int)
-    df["est_annual_gmv_inr"]      = (df["est_daily_gmv_inr"] * 365).round(0).astype(int)
+    # Zone-level ceiling (whole grid cell)
+    df["zone_population"] = (df["population_density"] * df["area_km2"]).round(0).astype(int)
+    df["zone_potential_daily_orders"] = (df["zone_population"] * rate / 1000).round(0).astype(int)
 
-    print(f"\n💰 Order Demand Estimates:")
-    print(df[["expansion_rank", "zone_id", "est_population",
-              "est_daily_orders", "est_monthly_gmv_inr"]].to_string(index=False))
-    print(f"\n  Total est. daily orders (top {len(df)} zones): {df['est_daily_orders'].sum():,}")
+    # Single-store capture (one store's delivery radius)
+    catchment_km2 = np.minimum(np.pi * catchment_radius_km ** 2, df["area_km2"])
+    df["catchment_km2"]       = catchment_km2.round(2)
+    df["est_population"]      = (df["population_density"] * catchment_km2).round(0).astype(int)
+    df["est_daily_orders"]    = (df["est_population"] * rate / 1000).round(0).astype(int)
+    df["est_daily_gmv_inr"]   = (df["est_daily_orders"] * avg_order_value_inr).round(0).astype(int)
+    df["est_monthly_gmv_inr"] = (df["est_daily_gmv_inr"] * 30).round(0).astype(int)
+    df["est_annual_gmv_inr"]  = (df["est_daily_gmv_inr"] * 365).round(0).astype(int)
+
+    print(f"\n💰 Order Demand Estimates (one store per zone, {catchment_radius_km} km radius):")
+    print(df[["expansion_rank", "zone_id", "est_population", "est_daily_orders",
+              "est_monthly_gmv_inr", "zone_potential_daily_orders"]].to_string(index=False))
+    print(f"\n  Total est. daily orders (10 new stores): {df['est_daily_orders'].sum():,}")
     print(f"  Total est. monthly GMV: ₹{df['est_monthly_gmv_inr'].sum():,.0f}")
     print(f"  Total est. annual GMV:  ₹{df['est_annual_gmv_inr'].sum():,.0f}")
+    print(f"  (Zone-level ceiling: {df['zone_potential_daily_orders'].sum():,} orders/day)")
     return df
 
 
@@ -229,8 +242,8 @@ if __name__ == "__main__":
     top10  = get_top_expansion_zones(zones, n=10)
     demand = estimate_order_demand(top10)
 
-    import os
-    os.makedirs("../outputs", exist_ok=True)
-    top10.drop(columns="geometry").to_csv("../outputs/top10_expansion_zones.csv", index=False)
-    demand.to_csv("../outputs/order_demand_estimates.csv", index=False)
+    out = os.path.join(os.path.dirname(__file__), "..", "outputs")
+    os.makedirs(out, exist_ok=True)
+    top10.drop(columns="geometry").to_csv(os.path.join(out, "top10_expansion_zones.csv"), index=False)
+    demand.to_csv(os.path.join(out, "order_demand_estimates.csv"), index=False)
     print("\n✅ Outputs saved.")

@@ -10,3 +10,4 @@ shapely>=2.0
 notebook>=7.0
 ipykernel>=6.0
 pandera>=0.20
+openpyxl>=3.1

@@ -22,6 +22,7 @@ OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "outputs")
 
 TIER_COLORS = {
     "Covered":             "#2ECC71",
+    "Excluded (Low Density)": "#BDC3C7",
     "Low Opportunity":     "#F1C40F",
     "Medium Opportunity":  "#E67E22",
     "High Opportunity":    "#E74C3C",
@@ -52,8 +53,8 @@ def create_opportunity_map(zones: gpd.GeoDataFrame,
     m = folium.Map(
         location=[28.55, 77.20],
         zoom_start=10,
-        tiles="CartoDB positron",
-        attr="CartoDB"
+        tiles="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        attr="&copy; OpenStreetMap contributors &copy; CARTO"
     )
 
     # ── Layer 1: Zone choropleth ─────────────────────────────────────
@@ -62,7 +63,7 @@ def create_opportunity_map(zones: gpd.GeoDataFrame,
         tier   = str(zone.get("dsoi_tier", "Low Opportunity"))
         score  = float(zone.get("dsoi_score", 0))
         color  = TIER_COLORS.get(tier, "#aaaaaa")
-        opacity = {"Covered": 0.10, "Low Opportunity": 0.30,
+        opacity = {"Covered": 0.10, "Excluded (Low Density)": 0.08, "Low Opportunity": 0.30,
                    "Medium Opportunity": 0.50, "High Opportunity": 0.70}.get(tier, 0.3)
 
         tooltip_html = f"""
@@ -123,7 +124,8 @@ def create_opportunity_map(zones: gpd.GeoDataFrame,
             <b>Pop. density:</b> {int(zone.get('population_density',0)):,}/km²<br>
             <b>Nearest store:</b> {zone.get('nearest_store_dist_km',0):.1f} km away<br>
             <b>Income proxy:</b> {zone.get('income_proxy',0):.2f}<br>
-            <b>Est. daily orders:</b> {int(zone.get('est_daily_orders', 0)):,}
+            <b>Est. daily orders (1 store):</b> {int(zone.get('est_daily_orders', 0)):,}<br>
+            <b>Est. monthly GMV:</b> &#8377;{zone.get('est_monthly_gmv_inr', 0)/1e5:,.1f} L
         </div>
         """
         folium.Marker(
@@ -150,7 +152,8 @@ def create_opportunity_map(zones: gpd.GeoDataFrame,
         <span style='background:#E74C3C;display:inline-block;width:14px;height:14px;border-radius:2px'></span>&nbsp; High Opportunity<br>
         <span style='background:#E67E22;display:inline-block;width:14px;height:14px;border-radius:2px'></span>&nbsp; Medium Opportunity<br>
         <span style='background:#F1C40F;display:inline-block;width:14px;height:14px;border-radius:2px'></span>&nbsp; Low Opportunity<br>
-        <span style='background:#2ECC71;display:inline-block;width:14px;height:14px;border-radius:2px'></span>&nbsp; Already Covered<br><br>
+        <span style='background:#2ECC71;display:inline-block;width:14px;height:14px;border-radius:2px'></span>&nbsp; Already Covered (&le;1.5 km)<br>
+        <span style='background:#BDC3C7;display:inline-block;width:14px;height:14px;border-radius:2px'></span>&nbsp; Excluded (&lt;3,000/km&sup2;)<br><br>
         <span style='background:#FFD700;display:inline-block;width:10px;height:10px;border-radius:50%'></span>&nbsp; Blinkit &nbsp;
         <span style='background:#7C3AED;display:inline-block;width:10px;height:10px;border-radius:50%'></span>&nbsp; Zepto &nbsp;
         <span style='background:#FF6B35;display:inline-block;width:10px;height:10px;border-radius:50%'></span>&nbsp; Instamart
@@ -169,7 +172,7 @@ def create_opportunity_map(zones: gpd.GeoDataFrame,
     m.get_root().html.add_child(folium.Element(title_html))
 
     folium.LayerControl(collapsed=False).add_to(m)
-    MiniMap(tile_layer="CartoDB positron", toggle_display=True).add_to(m)
+    MiniMap(toggle_display=True).add_to(m)
 
     m.save(output_path)
     print(f"🗺️  Interactive map saved: {output_path}")
@@ -189,7 +192,8 @@ def plot_coverage_analysis(zones: gpd.GeoDataFrame,
 
     # Coverage by zone type
     ax1 = axes[0]
-    ct = zones.groupby(["zone_type", "store_covered"]).size().unstack(fill_value=0)
+    ct = (zones.groupby(["zone_type", "store_covered"]).size()
+          .unstack(fill_value=0).reindex(columns=[False, True], fill_value=0))
     ct.columns = ["Uncovered", "Covered"]
     ct.plot.bar(ax=ax1, color=["#E74C3C", "#2ECC71"], edgecolor="white", stacked=True)
     ax1.set_title("Coverage by Zone Type")
@@ -199,7 +203,8 @@ def plot_coverage_analysis(zones: gpd.GeoDataFrame,
 
     # DSOI tier distribution
     ax2 = axes[1]
-    tier_order = ["High Opportunity", "Medium Opportunity", "Low Opportunity", "Covered"]
+    tier_order = ["High Opportunity", "Medium Opportunity", "Low Opportunity",
+                  "Excluded (Low Density)", "Covered"]
     counts = zones["dsoi_tier"].value_counts().reindex(tier_order, fill_value=0)
     colors = [TIER_COLORS[t] for t in tier_order]
     bars = ax2.barh(tier_order, counts.values, color=colors, edgecolor="white")
@@ -233,7 +238,8 @@ def plot_opportunity_scatter(zones: gpd.GeoDataFrame,
         output_path = os.path.join(OUTPUT_DIR, "opportunity_scatter.png")
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    tier_order = ["Covered", "Low Opportunity", "Medium Opportunity", "High Opportunity"]
+    tier_order = ["Excluded (Low Density)", "Covered", "Low Opportunity",
+                  "Medium Opportunity", "High Opportunity"]
 
     for tier in tier_order:
         subset = zones[zones["dsoi_tier"].astype(str) == tier]

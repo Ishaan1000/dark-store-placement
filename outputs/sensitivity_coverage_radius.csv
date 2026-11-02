@@ -1,0 +1,6 @@
+coverage_radius_km,zones_covered,overlap_with_base
+1.0,4,10
+1.5,6,10
+2.0,10,10
+2.5,15,10
+3.0,19,10

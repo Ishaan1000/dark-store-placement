@@ -1,179 +1,114 @@
-# 🛒 Dark Store Placement Intelligence
-### *Where should Blinkit open next in Delhi-NCR?*
+# Dark Store Placement Intelligence (Delhi-NCR)
 
----
+Where should a quick-commerce operator (Blinkit, Zepto, Instamart) open its next 10 dark stores in Delhi-NCR?
+Built in Python (GeoPandas, scikit-learn, Folium, pandera, SQLite). The model scores 150 demand zones on a weighted **Dark Store Opportunity Index (DSOI)**, sizes the order and GMV potential of the top 10, and stress-tests the ranking with 1,000 random weight draws.
 
-## 📌 Problem Statement
+![DSOI opportunity map](outputs/figures/01_dsoi_opportunity_map.png)
 
-India's quick commerce sector crossed **$5 billion in GMV in 2025**, with Blinkit, Zepto, and Swiggy Instamart competing aggressively for micro-market dominance. Every new dark store represents a ₹1–3 crore infrastructure investment — and placement decisions are made on a combination of gut feel, existing delivery data, and ad hoc analysis.
+## Key findings
 
-This project builds a **data-driven dark store placement model** that answers a real question Blinkit's expansion team faces every quarter:
+| | |
+|---|---|
+| Demand zones scored | 150 |
+| Already covered (within 1.5 km of one of 38 existing stores) | 6 |
+| Excluded (density below 3,000/km²) | 80 |
+| Eligible candidates | **64** (50 High Opportunity) |
+| Top 10: est. orders/day (one new store each, 1.5 km catchment) | **7,521** (≈752 per store) |
+| Top 10: est. GMV | **₹8.6 Cr / month · ₹104 Cr / year** |
+| Top-10 zones kept in the top 10 in ≥90% of 1,000 weight draws | **7 / 10** |
 
-> **"Which residential clusters in Delhi-NCR are underserved by current dark store coverage, and which 10 zones should we open in next?"**
+**Top 10 expansion zones**
 
----
+| # | Zone | Type | Nearest store (km) | Density /km² | DSOI | Orders/day | GMV ₹L/mo | Stable* |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Z034 | Urban | Blinkit Palam Vihar (8.4) | 9,727 | 100.0 | 550 | 63 | 100% |
+| 2 | Z058 | Metro Core | Zepto Noida Sec 44 (4.2) | 22,451 | 97.9 | 1,270 | 145 | 95% |
+| 3 | Z020 | Metro Core | Zepto Sohna Road (4.5) | 15,532 | 97.1 | 878 | 100 | 99% |
+| 4 | Z043 | Metro Core | Zepto Noida Sec 44 (9.0) | 11,108 | 91.3 | 628 | 72 | 100% |
+| 5 | Z052 | Urban | Zepto Dwarka Sec 10 (5.5) | 9,026 | 90.9 | 510 | 58 | 100% |
+| 6 | Z069 | Metro Core | Blinkit Connaught Place (3.2) | 26,680 | 90.1 | 1,509 | 172 | 61% |
+| 7 | Z059 | Metro Core | Zepto Noida Sec 44 (8.8) | 9,659 | 90.0 | 546 | 62 | 96% |
+| 8 | Z014 | Urban | Blinkit Greater Noida (12.1) | 8,236 | 88.8 | 466 | 53 | 95% |
+| 9 | Z036 | Metro Core | Blinkit Gurgaon Sec 29 (3.1) | 16,566 | 88.6 | 937 | 107 | 63% |
+| 10 | Z049 | Urban | Blinkit Palam Vihar (8.3) | 4,023 | 86.5 | 227 | 26 | 44% |
 
-## 🎯 Project Objectives
+\*Stable = the share of 1,000 random weight draws (each weight moved by about ±20%) in which the zone stays in the top 10.
 
-1. Map all existing Blinkit / Zepto / Swiggy Instamart dark store locations in Delhi-NCR
-2. Compute coverage gaps using 2km delivery radius analysis
-3. Score each zone on a **Dark Store Opportunity Index (DSOI)**: population density, income proxy, delivery demand signals, and distance to nearest dark store
-4. Identify top 10 expansion zones with estimated daily order potential
-5. Deliver a strategy brief framed as a memo to Blinkit's Head of Expansion
+**Sensitivity** (`outputs/sensitivity_*.csv`)
+- **Weights:** the median random draw keeps 9 of the 10 zones. Named distance-, income-, density-heavy and equal-weight scenarios keep 8–9.
+- **Coverage radius:** any value from 1.0 to 3.0 km leaves the top 10 unchanged.
+- **Density floor:** any value from 0 to 4,000/km² leaves the top 10 unchanged. A 5,000/km² floor swaps out only Z049.
 
----
+**So what:**
+- DSOI finds *whitespace*, but whitespace is not the same as volume. Z069 (DSOI rank 6) has the most orders (1,509/day) and Z049 (rank 10) the fewest (227), because the 35% distance weight lifts remote, affluent but thinner zones.
+- The recommended first wave is **Z058, Z020 and Z043**: the highest-volume zones among those that are stable under weight changes. Together they come to about 2,800 orders/day and ₹3.2 Cr GMV/month.
+- Z069 and Z036 are only about 3 km from existing stores and change rank with the weights. They point to adding capacity at the nearby store, not to opening a new site.
 
-## 📁 Repository Structure
+![Orders per zone](outputs/figures/02_top10_orders_gmv.png)
+![Rank stability](outputs/figures/04_rank_stability.png)
 
-```
-dark-store-placement/
-│
-├── data/
-│   ├── raw/                        # Source data
-│   └── processed/                  # Cleaned, merged datasets
-│
-├── notebooks/
-│   ├── 01_data_collection.ipynb    # Dark store + ward data ingestion
-│   ├── 02_eda_and_cleaning.ipynb   # Coverage and demand EDA
-│   ├── 03_opportunity_model.ipynb  # DSOI scoring model
-│   └── 04_visualization.ipynb      # Maps and charts
-│
-├── src/
-│   ├── data_loader.py              # Data ingestion functions
-│   ├── schemas.py                  # Pandera validation schemas (data contract)
-│   ├── pipeline.py                 # Extract -> Validate -> Transform -> Load pipeline
-│   ├── opportunity_model.py        # DSOI scoring logic
-│   └── visualizer.py               # Map and chart generation
-│
-├── outputs/
-│   ├── dark_store_opportunity_map.html   # Interactive Folium map
-│   ├── top10_expansion_zones.csv         # Final ranked zones
-│   ├── strategy_brief.md                 # Consulting recommendation memo
-│   ├── dark_store.db                     # SQLite database (generated by pipeline.py)
-│   └── data_quality_report.md            # Validation summary (generated by pipeline.py)
-│
-├── docs/
-│   └── methodology.md              # Detailed methodology
-│
-├── requirements.txt
-└── README.md
-```
-
----
-
-## 🔧 Data Engineering Layer
-
-Beyond the analytics pipeline (`opportunity_model.py`), this project includes a separate, additive data engineering layer (`schemas.py` + `pipeline.py`):
-
-```
-extract() → validate() → transform() → load() → quality report
-```
-
-- **`schemas.py`** — Pandera schemas define the data contract for both tables (dark stores, demand zones): lat/lon bounds, brand enum (Blinkit/Zepto/Instamart/Unknown), population density ceiling, income proxy range, zone-type enum, zone_id format/uniqueness. Validation fails loudly on a contract violation rather than silently passing bad data downstream.
-- **`pipeline.py`** — Runs the full ETL flow and persists clean, validated tables to a local SQLite database (`outputs/dark_store.db`), alongside a `pipeline_runs` audit table tracking every execution. The pipeline is **idempotent**: re-running it replaces the data tables with a fresh, identical state rather than duplicating rows.
-- **`outputs/data_quality_report.md`** — Auto-generated after every run, summarising row counts, null checks, brand distribution, and the actual range/enum checks the schema enforced.
-
-Run it standalone with:
-```bash
-python src/pipeline.py
-```
-
-This layer does not change the behaviour of `opportunity_model.py` or any notebook — both can still be run exactly as before.
-
----
-
-## 📊 Data Status — What's Real vs. Synthetic
-
+## Data: what's real vs synthetic
 | Dataset | Status | Detail |
 |---|---|---|
-| Existing dark store locations | ✅ **Real** | Live OpenStreetMap query attempted first (`fetch_dark_stores()`); falls back to a hand-built seed list of ~38 real, named Blinkit/Zepto/Instamart locations across Delhi-NCR if the API returns too little |
-| Demand zone population density, income proxy, delivery-demand signal | ⚠️ **Synthetic** | Generated by a parametric model (`generate_demand_grid()`) calibrated to Delhi-NCR's real multi-center geography (Connaught Place, Gurgaon, Noida, Rohini) — **not** sourced from Census or any official dataset |
+| Existing dark store locations | **Real names, hand-built list** | 38 named Blinkit/Zepto/Instamart locations (`data_loader._fallback_dark_stores`). A live OpenStreetMap query is optional (`DARK_STORE_USE_OSM=1`). It is off by default so every run is reproducible. |
+| Demand-zone density, income proxy, delivery demand | **Synthetic** | A parametric multi-centre model (`generate_demand_grid`, seed 42) calibrated to Delhi-NCR geography (CP, Gurgaon, Noida, Rohini). It is not sourced from the Census. |
 
-**Why:** A live, comprehensive feed of all three operators' actual store networks isn't publicly available, and granular ward/sector-level population data for Delhi-NCR at this resolution isn't either. Both are stand-ins built so they can be swapped for real data without touching the scoring logic in `opportunity_model.py`. See `docs/methodology.md` and `outputs/strategy_brief.md` for the full caveat and what would need to change to make this production-grade.
+This is a methodology demonstration. To make it production-grade, swap in a real store roster and ward-level population and income data, then re-run. The scoring and reporting code doesn't change.
 
-No API keys are required to run any part of this pipeline.
-
----
-
-## 🧮 Dark Store Opportunity Index (DSOI)
-
+## Method
 ```
-DSOI = (0.35 × Population Density Score)
-     + (0.35 × Distance to Nearest Dark Store Score)
-     + (0.20 × Income / Spending Power Score)
-     + (0.10 × Delivery Demand Proxy Score)
+DSOI = 0.35 × density + 0.35 × distance to nearest store (capped at 6 km)
+     + 0.20 × income proxy + 0.10 × delivery-demand proxy      (each min-max scaled)
 ```
+- Zones within 1.5 km of a store are tagged **Covered**. Zones below 3,000/km² are tagged **Excluded**. Both get DSOI = 0.
+- Distances are computed in UTM 43N (EPSG:32643).
+- **Order sizing** counts the residents inside one new store's 1.5 km radius (7.07 km²) × 8 orders per 1,000 per day (income ≥ 0.6, otherwise 4) × ₹380 basket. The whole-cell figure (36,530/day) is reported only as a ceiling.
 
-- **Higher score = bigger whitespace = higher expansion priority**
-- Zones within 1.5km of an existing dark store are classified as already covered
-- Income proxy derived from residential housing classification
+Full detail: [`docs/methodology.md`](docs/methodology.md).
 
----
+## Fixes made in this version
+- **Tier labels:** earlier output labelled all 86 zero-score zones "Covered". Only 6 are actually within 1.5 km of a store; the other 80 were excluded by the density floor. They now have separate tiers.
+- **GMV sizing:** earlier output assumed each new store serves its entire ~34 km² grid cell (36,530 orders/day, ₹41.6 Cr/month). Sizing to a 1.5 km catchment gives 7,521/day and ₹8.6 Cr/month.
 
-## 🗺️ Key Output: Interactive Opportunity Map
-
-The interactive map shows:
-- 🔴 Existing dark store locations with 2km delivery radii
-- 🟠 High-opportunity zones (DSOI top quartile)
-- 📍 Top 10 ranked expansion sites with order demand estimates
-- 🏘️ Ward choropleth coloured by DSOI tier
-
----
-
-## 💼 Strategy Brief Summary
-
-> *Full brief in `outputs/strategy_brief.md`*
-
-**Top Insight (this run):** The highest-opportunity zones cluster in Metro Core areas 3–9km from the nearest seeded store location — close enough for realistic single-store expansion, far enough to avoid cannibalising existing coverage. 7 of the top 10 zones sit in Gurgaon or Noida's extended sectors rather than core Delhi, where the seed store list is comparatively thinner.
-
-**Recommendation:** Sequence the top 3 zones (South-West Gurgaon periphery, Noida Sector 44 belt, and the Sohna Road corridor) as a first-wave rollout in the same quarter, with a combined estimated demand of ~13,100 orders/day across those three zones alone. Full top-10 financial summary in `outputs/strategy_brief.md`.
-
----
-
-## 🛠️ How to Run
-
-```bash
-# Clone the repo
-git clone https://github.com/YOUR_USERNAME/dark-store-placement
-cd dark-store-placement
-
-# Install dependencies
+## Run
+```
+python -m venv .venv && .venv\Scripts\activate
 pip install -r requirements.txt
-
-# Run notebooks in order (01 → 04)
-jupyter notebook
-
-# Or run the full pipeline directly
-python src/opportunity_model.py
+python src/run_all.py      # ~30 s: ETL -> validate -> SQLite -> model -> sensitivity -> all outputs
 ```
 
----
+| Output | What it is |
+|---|---|
+| `outputs/dark_store_opportunity_map.html` | Interactive Folium map: zone tiers, store radii, ranked top-10 pins with order/GMV popups |
+| `outputs/Dark_Store_Strategy_Brief.pdf` | Two-page brief: KPIs, findings, top-10 table, map, charts |
+| `outputs/strategy_brief.md` | Long-form consulting memo |
+| `outputs/excel/Dark_Store_Expansion_Model.xlsx` | What-if model: edit basket size, order rates, radius or ramp-up on `Inputs` and the `Top10` formulas recalculate |
+| `outputs/figures/*.png` | 7 charts (map, orders, score decomposition, rank stability, threshold sensitivity, tiers, density vs distance) |
+| `outputs/*.csv`, `outputs/dark_store.db` | Scored zones, top 10, demand estimates, sensitivity tables; SQLite with a `pipeline_runs` audit table |
+| `outputs/data_quality_report.md` | pandera validation summary |
 
-## 📦 Requirements
+## Charts
+![Score decomposition](outputs/figures/03_dsoi_score_decomposition.png)
+![Threshold sensitivity](outputs/figures/05_threshold_sensitivity.png)
+![Density vs distance](outputs/figures/07_density_vs_distance.png)
+![Zone tiers](outputs/figures/06_zone_tier_counts.png)
 
+## Repository
 ```
-pandas>=2.0
-geopandas>=0.14
-folium>=0.15
-scikit-learn>=1.3
-matplotlib>=3.7
-seaborn>=0.12
-requests>=2.31
-numpy>=1.24
-shapely>=2.0
-notebook>=7.0
+src/
+  data_loader.py        store seed list + synthetic demand grid
+  schemas.py            pandera data contracts
+  pipeline.py           extract -> validate -> transform -> load (SQLite)
+  opportunity_model.py  coverage, DSOI scoring, top 10, order/GMV sizing
+  analysis.py           sensitivity, figures, Excel model, PDF brief
+  visualizer.py         interactive Folium map
+  run_all.py            one-command entry point
+notebooks/              01-04 exploratory walk-through
+docs/methodology.md
+outputs/
 ```
 
----
-
-## 👤 Author
-
-**Ishaan Mankotia**  
-Associate Software Engineer @ Nagarro | B.Tech AI/ML, GGSIPU '25  
-[LinkedIn](https://linkedin.com/in/YOUR_PROFILE) | [GitHub](https://github.com/Ishaan1000)
-
----
-
-## 📄 License
+## Author
+**Ishaan Mankotia** · [GitHub](https://github.com/Ishaan1000)
 
 MIT License

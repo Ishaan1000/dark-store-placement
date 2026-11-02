@@ -1,0 +1,21 @@
+zone_id,zone_type,top10_share,in_base_top10
+Z034,Urban,1.0,True
+Z043,Metro Core,0.998,True
+Z052,Urban,0.997,True
+Z020,Metro Core,0.993,True
+Z059,Metro Core,0.956,True
+Z014,Urban,0.949,True
+Z058,Metro Core,0.948,True
+Z036,Metro Core,0.634,True
+Z069,Metro Core,0.613,True
+Z049,Urban,0.445,True
+Z042,Metro Core,0.417,False
+Z019,Metro Core,0.387,False
+Z035,Metro Core,0.309,False
+Z005,Urban,0.241,False
+Z068,Metro Core,0.051,False
+Z044,Metro Core,0.039,False
+Z026,Urban,0.008,False
+Z021,Metro Core,0.006,False
+Z096,Metro Core,0.005,False
+Z003,Urban,0.004,False

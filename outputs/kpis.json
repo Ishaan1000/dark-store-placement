@@ -1,0 +1,25 @@
+{
+  "orders": 7521,
+  "monthly_cr": 8.57394,
+  "annual_cr": 104.31627,
+  "zone_ceiling": 36530,
+  "robust": 7,
+  "eligible": 64,
+  "covered": 6,
+  "excluded": 80,
+  "high": 50,
+  "median_overlap": 9.0,
+  "metro_core_in_top10": 6,
+  "top_orders_zone": "Z069",
+  "top_orders": 1509,
+  "low_orders_zone": "Z049",
+  "low_orders": 227,
+  "first_wave": [
+    "Z058",
+    "Z020",
+    "Z043"
+  ],
+  "first_wave_orders": 2776,
+  "first_wave_gmv_cr": 3.16464,
+  "per_store_avg": 752
+}

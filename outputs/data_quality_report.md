@@ -1,6 +1,6 @@
-# Data Quality Report â€” Dark Store Placement Intelligence
+# Data Quality Report — Dark Store Placement Intelligence
 
-Generated: 2026-06-25T10:38:56.778913+00:00
+Generated: 2026-11-02T14:53:29.508615+00:00
 
 ## Dark Stores
 - Row count: 38
@@ -11,15 +11,15 @@ brand
 Blinkit      18
 Zepto        13
 Instamart     7
-- Latitude range: 28.4198 to 28.7025 (schema bound: 28.0â€“29.2)
-- Longitude range: 77.0315 to 77.5040 (schema bound: 76.5â€“77.8)
+- Latitude range: 28.4198 to 28.7025 (schema bound: 28.0–29.2)
+- Longitude range: 77.0315 to 77.5040 (schema bound: 76.5–77.8)
 
 ## Demand Zones
 - Row count: 150
 - Null values: 0
 - Unique zone_id: 150 (should equal row count)
 - Population density range: 300 to 26680 (schema ceiling: 100,000)
-- Income proxy range: 0.351 to 1.000 (schema bound: 0.0â€“1.0)
+- Income proxy range: 0.351 to 1.000 (schema bound: 0.0–1.0)
 - Zone type distribution:
 zone_type
 Urban         83

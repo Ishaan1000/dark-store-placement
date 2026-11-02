@@ -16,7 +16,7 @@ This brief is generated directly from the model and code in this repository (`sr
 
 Running the Dark Store Opportunity Index (DSOI) model against 150 demand zones and ~38 seeded real store locations surfaces a clear pattern: the highest-opportunity zones are concentrated in **Metro Core areas 3–9km from the nearest existing store** — close enough to be a realistic single-store expansion, far enough to avoid cannibalising the existing network. Six of the top 10 zones fall in the Metro Core category, and every zone in the top 10 has an income proxy above 0.6, meaning none of them are low-basket-size markets.
 
-**Bottom line:** the single highest-opportunity zone in this run (Z034, near Palam Vihar/South-West Gurgaon border) combines high density, top-tier income proxy, and an 8.4km gap from the nearest seeded store. The next two zones (Z058, Z020) sit near Noida Sector 44 and the Sohna Road corridor respectively, both with very high density (15,000–22,000/km²) and moderate distance — strong candidates for the next wave after Z034.
+**Bottom line (updated):** the recommended first wave is Z058, Z020 and Z043, about 2,800 orders/day and ₹3.2 Cr GMV/month, chosen for volume and rank stability (see Recommendation 1). On DSOI alone, the single highest-opportunity zone in this run (Z034, near Palam Vihar/South-West Gurgaon border) combines high density, top-tier income proxy, and an 8.4km gap from the nearest seeded store. The next two zones (Z058, Z020) sit near Noida Sector 44 and the Sohna Road corridor respectively, both with very high density (15,000–22,000/km²) and moderate distance.
 
 ---
 
@@ -45,78 +45,88 @@ Full methodology and the rationale for the distance cap and density floor: see `
 
 ## Actual Top 10 Output (this run)
 
-| Rank | Zone ID | Type | Nearest Store | Distance | Density (/km²) | Income Proxy | DSOI | Est. Daily Orders | Approx. Area |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | Z034 | Urban | Blinkit Palam Vihar | 8.4 km | 9,727 | 1.00 | 100.0 | 2,671 | South-West Gurgaon / Palam Vihar periphery |
-| 2 | Z058 | Metro Core | Zepto Noida Sec 44 | 4.2 km | 22,451 | 0.73 | 97.9 | 6,166 | Noida Sector 44 extended belt |
-| 3 | Z020 | Metro Core | Zepto Sohna Road | 4.5 km | 15,532 | 1.00 | 97.1 | 4,266 | Sohna Road corridor, South Gurgaon |
-| 4 | Z043 | Metro Core | Zepto Noida Sec 44 | 9.0 km | 11,108 | 0.82 | 91.3 | 3,051 | Noida Sector 62+ periphery |
-| 5 | Z052 | Urban | Zepto Dwarka Sec 10 | 5.5 km | 9,026 | 1.00 | 90.9 | 2,479 | Dwarka outer sectors |
-| 6 | Z069 | Metro Core | Blinkit Connaught Place | 3.3 km | 26,680 | 0.62 | 90.1 | 7,327 | Central Delhi, near CP |
-| 7 | Z059 | Metro Core | Zepto Noida Sec 44 | 8.8 km | 9,659 | 0.83 | 90.0 | 2,653 | Noida far-east periphery |
-| 8 | Z014 | Urban | Blinkit Greater Noida | 12.1 km | 8,236 | 0.90 | 88.8 | 2,262 | Greater Noida West fringe |
-| 9 | Z036 | Metro Core | Blinkit Gurgaon Sec 29 | 3.1 km | 16,566 | 1.00 | 88.6 | 4,550 | Gurgaon Sector 29–40 belt |
-| 10 | Z049 | Urban | Blinkit Palam Vihar | 8.3 km | 4,023 | 1.00 | 86.5 | 1,105 | South-West Gurgaon border |
+Orders and GMV are sized to **one new store's 1.5 km catchment** (π × 1.5² ≈ 7.07 km²), not the whole 34 km² grid cell. One store can't serve an entire cell, so the cell-level figure is shown only as a ceiling in `order_demand_estimates.csv` (`zone_potential_daily_orders`). **Stable** is the share of 1,000 random weight draws (each weight varied by about ±20%) in which the zone stays in the top 10.
 
-*Full data with all intermediate scores: `outputs/top10_expansion_zones.csv`. Order and GMV estimates per zone: `outputs/order_demand_estimates.csv`.*
+| Rank | Zone | Type | Nearest store | Distance | Density (/km²) | Income | DSOI | Orders/day | GMV ₹ L/mo | Stable | Approx. area |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Z034 | Urban | Blinkit Palam Vihar | 8.4 km | 9,727 | 1.00 | 100.0 | 550 | 63 | 100% | West of Gurgaon / Palam Vihar |
+| 2 | Z058 | Metro Core | Zepto Noida Sec 44 | 4.2 km | 22,451 | 0.73 | 97.9 | 1,270 | 145 | 95% | Noida Sector 44 extended belt |
+| 3 | Z020 | Metro Core | Zepto Sohna Road | 4.5 km | 15,532 | 1.00 | 97.1 | 878 | 100 | 99% | Sohna Road corridor, South Gurgaon |
+| 4 | Z043 | Metro Core | Zepto Noida Sec 44 | 9.0 km | 11,108 | 0.82 | 91.3 | 628 | 72 | 100% | South Noida periphery |
+| 5 | Z052 | Urban | Zepto Dwarka Sec 10 | 5.5 km | 9,026 | 1.00 | 90.9 | 510 | 58 | 100% | Dwarka outer sectors |
+| 6 | Z069 | Metro Core | Blinkit Connaught Place | 3.2 km | 26,680 | 0.62 | 90.1 | 1,509 | 172 | 61% | Central Delhi, south of CP |
+| 7 | Z059 | Metro Core | Zepto Noida Sec 44 | 8.8 km | 9,659 | 0.83 | 90.0 | 546 | 62 | 96% | Noida far-east periphery |
+| 8 | Z014 | Urban | Blinkit Greater Noida | 12.1 km | 8,236 | 0.90 | 88.8 | 466 | 53 | 95% | Greater Noida fringe |
+| 9 | Z036 | Metro Core | Blinkit Gurgaon Sec 29 | 3.1 km | 16,566 | 1.00 | 88.6 | 937 | 107 | 63% | Gurgaon Sector 29–40 belt |
+| 10 | Z049 | Urban | Blinkit Palam Vihar | 8.3 km | 4,023 | 1.00 | 86.5 | 227 | 26 | 44% | South-West Delhi / Gurgaon border |
+
+*Full data: `outputs/top10_expansion_zones.csv`, `outputs/order_demand_estimates.csv`, `outputs/all_zones_scored.csv`. Live what-if: `outputs/excel/Dark_Store_Expansion_Model.xlsx`.*
 
 ---
 
 ## Key Findings
 
-### Finding 1 — Rank 6 (Near Connaught Place) Has the Highest Single-Zone Order Potential
-Z069 has the highest population density in the entire top 10 (26,680/km²) and the highest estimated daily order volume (7,327), despite a below-average income proxy (0.62) relative to the rest of the list. Sheer density compensates for a smaller average basket size — high order *volume* rather than high order *value*.
+### Finding 1: Only 64 of 150 zones are real candidates
+6 zones already sit within 1.5 km of a seeded store, and 80 fall below the 3,000/km² density floor (open land or undeveloped periphery). Of the 64 that remain, 50 score as High Opportunity. The model isn't short of whitespace. The question is which whitespace a store can actually monetise.
 
-### Finding 2 — Gurgaon and Noida Peripheries Dominate the List
-7 of the top 10 zones sit in Gurgaon or Noida extended sectors rather than core Delhi. This is consistent with the seed store list being denser in established Delhi neighbourhoods (South Delhi, Central Delhi, Karol Bagh) and comparatively thinner in NCR's faster-growing outer sectors — exactly the kind of whitespace a DSOI model is built to surface.
+### Finding 2: DSOI rank is not order rank
+Z069 (rank 6) has the highest order potential at 1,509 orders/day because it is the densest zone in the list. Z049 (rank 10) would manage only 227. The 35% weight on distance lifts remote, affluent but thinner zones such as Z034, Z014 and Z049 above denser zones closer to existing stores. DSOI finds *whitespace*. Volume has to be checked separately before a site is picked, which is why this brief reports both.
 
-### Finding 3 — All Top 10 Zones Have an Income Proxy Above 0.6
-Every zone in this run, even the lowest-ranked, sits well above the income floor that would suggest a low-basket-size market. This is a direct consequence of the 35% weight on density and 35% on distance crowding out income as the binding constraint — in this particular run, there was no need to trade off density/distance against income, because zones scoring well on the first two also happened to skew affluent.
+### Finding 3: The top 10 holds up under sensitivity testing
+- **Weights:** across 1,000 random weight draws, the median draw keeps 9 of the 10 zones, and 7 zones stay in the top 10 in at least 90% of draws. The three fragile picks are Z036 (63%), Z069 (61%) and Z049 (44%). Z042 and Z019 are the next zones in line.
+- **Thresholds:** changing the existing-store coverage radius from 1.0 to 3.0 km, or the density floor from 0 to 4,000/km², leaves the top 10 unchanged. A 5,000/km² floor swaps out only Z049.
+- **Named scenarios:** distance-heavy, income-heavy, density-heavy and equal-weight scenarios keep 8–9 of the base 10.
+
+### Finding 4: All top-10 zones are affluent
+Every top-10 zone has an income proxy of at least 0.6, so all of them use the high order rate (8 per 1,000 residents per day). None of them is a low-basket market.
 
 ---
 
 ## Strategic Recommendations
 
-### Recommendation 1 — Sequence Z034, Z058, and Z020 as the First Wave
-These three combine the highest DSOI scores with real distance from existing coverage (4–9km, comfortably outside the 1.5km cannibalisation radius). Recommend opening these three in the same quarter to establish presence across three distinct geographic corridors (Gurgaon periphery, Noida, Sohna Road) before competitors respond in any one of them.
+### Recommendation 1: First wave of Z058, Z020 and Z043
+These are the three highest-volume zones among the 7 that stay in the top 10 in at least 90% of weight draws. Together they come to about **2,800 orders/day and ₹3.2 Cr GMV/month**, and they cover two corridors (Noida and Sohna Road/South Gurgaon). Z034 is the model's #1, but its single-store volume (550/day) is modest. Run it in the second wave as a test of the "remote but affluent" thesis.
 
-### Recommendation 2 — Validate the Seed Store List Before Committing Capital
-The "nearest store" distances in this brief are only as good as the 38-location seed list in `data_loader.py`. Before using this analysis to inform real site selection, replace the seed list with Blinkit's actual internal store roster (or a verified, current third-party dataset) and re-run `src/opportunity_model.py` — the scoring logic itself does not need to change.
+### Recommendation 2: Treat Z069 and Z036 as capacity signals, not site picks
+These are the two highest-volume zones after Z058, but they sit only 3.1–3.3 km from existing stores and are weight-sensitive (about 60% stable). In reality, central Delhi and Gurgaon Sector 29 are heavily served. The real answer there is more likely added capacity at the nearby store than a new site.
 
-### Recommendation 3 — Use Z069's Result as a Sense-Check, Not a Site Pick
-Z069 sits only 3.25km from an existing Connaught Place store — close enough that real-world cannibalisation risk is meaningfully higher than the model's 1.5km threshold fully captures, especially if the existing store's actual delivery radius extends past 1.5km in practice. Treat this result as a signal that the area is under-capacitated relative to demand, not as a literal "open here" instruction.
+### Recommendation 3: Validate the inputs before committing capital
+Replace the 38-store seed list with an operator's real store roster, and replace the synthetic demand grid with ward-level population and income data. Then re-run `python src/run_all.py`. The scoring, sensitivity and reporting code doesn't change.
 
 ---
 
-## Financial Impact Summary (Top 10 Zones, This Run)
+## Financial Impact Summary (top 10 zones, one store each)
 
 | Metric | Total |
 |---|---|
-| Combined estimated daily orders | 36,530 |
-| Combined estimated monthly GMV | ₹41.64 Cr |
-| Combined estimated annual GMV | ₹506.67 Cr |
+| Estimated daily orders | 7,521 (≈752 per store) |
+| Estimated monthly GMV | ₹8.57 Cr |
+| Estimated annual GMV | ₹104.3 Cr |
+| Cell-level ceiling (if a store served its whole 34 km² cell) | 36,530 orders/day |
 
-*Assumes 8 orders per 1,000 residents per day for zones with income proxy ≥ 0.6 (all 10 zones in this run cleared that threshold), and a category-standard basket size baked into `estimate_order_demand()`. See `docs/methodology.md` for the exact formula and the basket-size assumption.*
+*Assumptions: 8 orders per 1,000 residents per day where the income proxy is ≥ 0.6 (all 10 zones), a ₹380 average basket, and a 1.5 km delivery radius at steady state. Every assumption is an editable input in the Excel model.*
+
+> **Correction to the earlier version of this brief:** it reported 36,530 orders/day and ₹41.6 Cr/month. Those figures assumed each new store serves its entire 34 km² grid cell. They are now shown only as a ceiling.
 
 ---
 
 ## Caveats and Limitations
 
-- **Existing store locations are a hand-built seed list of ~38 real, named locations**, not a live or comprehensive feed of Blinkit/Zepto/Instamart's actual store networks. The real networks are larger; a more complete seed list would likely shrink some of the gaps identified here.
-- **Demand zone density, income, and delivery-demand are synthetic**, calibrated to Delhi-NCR's real multi-center urban structure (CP, Gurgaon, Noida, Rohini) but not sourced from Census or any official dataset.
-- 1.5km coverage radius is a stated industry assumption, not validated against any specific operator's actual delivery-radius policy.
-- The basket-size and order-rate assumptions in `estimate_order_demand()` are reasonable estimates, not sourced from any operator's disclosed unit economics.
-- Area name labels are approximate, based on matching each zone's lat/lon to known Delhi-NCR geography by eye.
+- **Existing store locations come from a hand-built seed list of 38 real, named locations**, not a comprehensive feed. The real networks are much larger, so a fuller list would close some of these gaps, especially Z069 and Z036.
+- **Demand-zone density, income and delivery demand are synthetic.** They come from a parametric model calibrated to Delhi-NCR's multi-centre structure (CP, Gurgaon, Noida, Rohini), not from the Census or any official dataset.
+- Distances are straight-line, not road-network.
+- The 1.5 km radius, order rates and ₹380 basket are stated assumptions, not any operator's disclosed unit economics.
+- Area labels are approximate: each zone's lat/lon was matched to known geography by eye.
 
 ---
 
 ## Next Steps
 
-1. Replace the seed store list with a verified, current dataset of all three operators' actual store locations
-2. Source real ward/sector-level population and income data for Delhi-NCR to replace the synthetic demand grid
-3. Pilot Z034, Z058, and Z020 with a 90-day tracked rollout before committing to the remaining 7 zones
-4. Extend the bounding box to cover Faridabad and Ghaziabad with the same methodology
+1. Swap in verified store locations for all three operators.
+2. Replace the synthetic grid with ward/sector-level population and income data.
+3. Pilot Z058, Z020 and Z043 with a 90-day tracked rollout and calibrate the order rate to actual results.
+4. Extend the bounding box to Faridabad and Ghaziabad.
 
 ---
 
-*This brief was produced as part of an independent data analytics project, generated directly from the code in this repository. Both the existing-store seed list and the demand-zone population data are best-effort approximations, not official or live data feeds — see Caveats above before treating any specific number as a real-world recommendation.*
+*Produced as an independent analytics project, generated from the code in this repository (`python src/run_all.py`). See the caveats above before treating any number as a real-world recommendation.*

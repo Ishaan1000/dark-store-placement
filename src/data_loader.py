@@ -27,7 +27,7 @@ DELHI_NCR_BBOX = (28.35, 76.78, 28.92, 77.52)
 # DARK STORE LOCATIONS
 # ─────────────────────────────────────────────
 
-def fetch_dark_stores() -> gpd.GeoDataFrame:
+def fetch_dark_stores(use_osm: bool = None) -> gpd.GeoDataFrame:
     """
     Fetches existing quick-commerce dark store / fulfillment centre
     locations in Delhi-NCR from OpenStreetMap.
@@ -46,9 +46,16 @@ def fetch_dark_stores() -> gpd.GeoDataFrame:
     );
     out body;
     """
+    # Default to the curated seed list so every run is reproducible.
+    # Set DARK_STORE_USE_OSM=1 (or pass use_osm=True) to try a live query.
+    if use_osm is None:
+        use_osm = os.environ.get("DARK_STORE_USE_OSM", "0") == "1"
+    if not use_osm:
+        return _fallback_dark_stores()
     try:
         print("📡 Fetching dark store locations from OpenStreetMap...")
-        resp = requests.post(OVERPASS_URL, data={"data": query}, timeout=35)
+        resp = requests.post(OVERPASS_URL, data={"data": query}, timeout=35,
+                             headers={"User-Agent": "dark-store-placement/1.0"})
         resp.raise_for_status()
         elements = resp.json().get("elements", [])
 
@@ -58,7 +65,8 @@ def fetch_dark_stores() -> gpd.GeoDataFrame:
                 tags = el.get("tags", {})
                 records.append({
                     "name":   tags.get("name", "Dark Store"),
-                    "brand":  tags.get("brand", "Unknown"),
+                    "brand":  next((b for b in ("Blinkit", "Zepto", "Instamart")
+                                    if b.lower() in tags.get("brand", "").lower()), "Unknown"),
                     "lat":    el["lat"],
                     "lon":    el["lon"],
                 })
@@ -78,7 +86,7 @@ def fetch_dark_stores() -> gpd.GeoDataFrame:
 
 def _fallback_dark_stores() -> gpd.GeoDataFrame:
     """
-    Realistic seed of ~80 dark store locations across Delhi-NCR
+    Hand-built seed of 38 named dark store locations across Delhi-NCR
     reflecting approximate Blinkit / Zepto / Instamart coverage
     as of early 2026. Concentrated in South Delhi, Central Delhi,
     Noida Sector 18–62 corridor, and Gurgaon Sector 29–56.

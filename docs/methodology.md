@@ -74,30 +74,49 @@ All sub-scores normalised to [0, 1] using MinMaxScaler before weighting.
 
 ## Tier Classification
 
-| Tier | DSOI Range | Interpretation |
+| Tier | Rule | Interpretation |
 |---|---|---|
-| Covered | ≤ 0.1 | Within 1.5km of existing store — already served |
-| Low Opportunity | 0.1 – 35 | Limited whitespace or low density |
-| Medium Opportunity | 35 – 60 | Meaningful gap; watch for Q4 consideration |
-| High Opportunity | 60 – 100 | Large unserved population with spending power |
+| Covered | within 1.5 km of an existing store | Already served, DSOI forced to 0 |
+| Excluded (Low Density) | density < 3,000 / km² | Open land or periphery, DSOI forced to 0 |
+| Low Opportunity | DSOI 0–35 | Limited whitespace or low density |
+| Medium Opportunity | DSOI 35–60 | Meaningful gap |
+| High Opportunity | DSOI 60–100 | Large unserved population with spending power |
+
+*(An earlier version labelled every zero-score zone "Covered", which inflated the covered count from 6 to 86.)*
 
 ---
 
 ## Order Demand Estimation
 
+Each top-10 zone is sized as **one new store** serving its delivery radius. A single store can't serve a whole ~34 km² grid cell, so the cell-level figure is kept only as a ceiling.
+
 ```
-Estimated Population = Population Density × Zone Area (km²)
+Catchment area   = pi x r²  (r = 1.5 km -> 7.07 km², capped at the zone area)
+Catchment pop.   = Population Density x Catchment area
 
 Daily Order Rate:
-  High income zones (income_proxy ≥ 0.6): 8 orders / 1,000 residents / day
-  Mid income zones  (income_proxy < 0.6):  4 orders / 1,000 residents / day
+  High income zones (income_proxy >= 0.6): 8 orders / 1,000 residents / day
+  Mid income zones  (income_proxy <  0.6): 4 orders / 1,000 residents / day
 
-Daily Orders    = Est. Population × Daily Order Rate / 1,000
-Daily GMV (₹)  = Daily Orders × ₹380 (avg. basket size)
-Monthly GMV (₹) = Daily GMV × 30
+Daily Orders     = Catchment pop. x Daily Order Rate / 1,000
+Daily GMV (Rs)   = Daily Orders x Rs 380 (avg. basket size)
+Monthly GMV (Rs) = Daily GMV x 30
+
+Zone ceiling     = Population Density x Zone area x Rate / 1,000   (reported separately)
 ```
 
-**Basket size assumption (₹380):** Based on reported Blinkit average order values in 2024–25 across Delhi-NCR mid-income zones. Premium zones (income_proxy ≥ 0.75) may run ₹480–520.
+**Basket size assumption (₹380):** based on reported Blinkit average order values for 2024–25 across Delhi-NCR mid-income zones. Premium zones (income_proxy ≥ 0.75) may run ₹480–520. Every assumption is an editable input in `outputs/excel/Dark_Store_Expansion_Model.xlsx`.
+
+---
+
+## Sensitivity Analysis (`src/analysis.py`)
+
+| Test | Method | Result (this run) |
+|---|---|---|
+| Weight uncertainty | 1,000 Dirichlet draws centred on 35/35/20/10 (concentration 50, so each weight moves about ±20%) | Median draw keeps 9/10; 7 zones are in the top 10 in ≥90% of draws |
+| Named scenarios | Distance-, income-, density-heavy and equal weights | 8–9 of 10 retained |
+| Coverage radius | 1.0 to 3.0 km for existing stores | Top 10 unchanged |
+| Density floor | 0 to 5,000 / km² | Unchanged up to 4,000; 9/10 at 5,000 |
 
 ---
 
